@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ash's Year in Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero{ max-width: 720px; margin: 0 auto; padding: 56px 20px 20px; text-align:center; }
+  .hero h1{ font-size: clamp(30px, 6vw, 46px); color: var(--pink-deep); margin: 0 0 6px; }
+  .hero .sub{ font-family:'Space Mono', monospace; font-size: 13px; letter-spacing:1.5px; color: var(--ink-soft); }
+  .hero p.lead{ max-width: 480px; margin: 18px auto 0; line-height:1.6; font-size:15.5px; }
+
+  .stats-grid{
+    max-width: 880px; margin: 40px auto 10px;
+    display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    padding: 0 20px;
+  }
+  @media (max-width: 700px){ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
+
+  .stat-card{
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 22px 14px;
+    text-align:center;
+    box-shadow: 0 10px 26px rgba(120,20,55,0.12);
+  }
+  .stat-icon{ font-size: 26px; margin-bottom: 6px; }
+  .stat-number{
+    font-size: 26px; font-weight:700; color: var(--pink-deep);
+    font-family:'Space Mono', monospace;
+  }
+  .stat-label{ font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; line-height:1.4; }
+
+  .fine-print{
+    text-align:center; font-family:'Space Mono', monospace; font-size:11.5px;
+    color: var(--ink-soft); opacity:.65; margin: 8px 20px 0;
+  }
+
+  .cta-wrap{ text-align:center; margin: 42px 20px 10px; }
+</style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <span class="nav-logo">🎀 Ash's Big Day</span>
+      <div class="nav-links">
+        <a class="nav-link active" href="index.html">Home</a>
+        <a class="nav-link" href="card.html">Card</a>
+        <a class="nav-link" href="guestbook.html">Guestbook</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>Ash's Year in Review</h1>
+    <div class="sub">// TURNING 32 · SEPTEMBER 1, 2026 //</div>
+    <p class="lead">
+      A completely unbiased, rigorously researched look back at the last twelve months
+      of being an unstoppable mom, wife, crocheter, coder, and professional rabbit-hole diver.
+    </p>
+  </header>
+
+  <section class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-icon">👶</div><div class="stat-number" data-target="3">0</div><div class="stat-label">Tiny humans raised (and thriving)</div></div>
+    <div class="stat-card"><div class="stat-icon">💍</div><div class="stat-number" data-target="1">0</div><div class="stat-label">Marriage, still going strong</div></div>
+    <div class="stat-card"><div class="stat-icon">🧶</div><div class="stat-number" data-target="1842">0</div><div class="stat-label">Crochet rows completed (give or take a dropped stitch)</div></div>
+    <div class="stat-card"><div class="stat-icon">🕳️</div><div class="stat-number" data-target="97">0</div><div class="stat-label">TikTok &amp; YouTube rabbit holes fully explored</div></div>
+    <div class="stat-card"><div class="stat-icon">🔎</div><div class="stat-number" data-target="4">0</div><div class="stat-label">Theories that actually held up under further research</div></div>
+    <div class="stat-card"><div class="stat-icon">💻</div><div class="stat-number" data-target="12000">0</div><div class="stat-label">Lines of code written this semester</div></div>
+    <div class="stat-card"><div class="stat-icon">🚫</div><div class="stat-number" data-target="0">0</div><div class="stat-label">Times she settled for less</div></div>
+    <div class="stat-card"><div class="stat-icon">🎂</div><div class="stat-number" data-target="32">0</div><div class="stat-label">Trips around the sun, unstoppable every time</div></div>
+  </section>
+
+  <p class="fine-print">citation needed, but we stand by every one of these numbers</p>
+
+  <div class="cta-wrap">
+    <a href="card.html" class="btn-primary">Open Your Card →</a>
+  </div>
+
+  <footer class="site-footer">made with love (and a little help from AI) by Dada</footer>
+
+<script>
+  const numbers = document.querySelectorAll('.stat-number');
+  const animate = (el) => {
+    const target = parseInt(el.dataset.target, 10);
+    const duration = 1100;
+    const start = performance.now();
+    function step(now){
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target).toLocaleString();
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  };
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        animate(entry.target);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  numbers.forEach(n => obs.observe(n));
+</script>
+
+</body>
+</html>
