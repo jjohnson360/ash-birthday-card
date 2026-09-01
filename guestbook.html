@@ -31,7 +31,7 @@
     box-shadow: 0 8px 20px rgba(120,20,55,0.10);
   }
   .note .who{ font-weight:700; color: var(--pink-deep); font-size:14px; margin-bottom:4px; }
-  .note .what{ font-size: 14.5px; line-height:1.5; color: var(--ink); }
+  .note .what{ font-size: 14.5px; line-height:1.5; color: var(--ink); white-space: pre-wrap; }
   .empty-note{
     text-align:center; color: var(--ink-soft); font-family:'Space Mono', monospace;
     font-size: 13px; padding: 20px; opacity:.75;
@@ -59,53 +59,87 @@
 
     <div class="form-card">
       <label for="noteName">Your name</label>
-      <input type="text" id="noteName" placeholder="e.g. Dada">
+      <input type="text" id="noteName" maxlength="40" placeholder="e.g. Dada">
       <label for="noteMessage">Your message</label>
-      <textarea id="noteMessage" placeholder="Say happy birthday..."></textarea>
+      <textarea id="noteMessage" maxlength="400" placeholder="Say happy birthday..."></textarea>
       <div class="form-actions">
         <button class="btn-primary" id="sendNoteBtn">Send love to Ash 💌</button>
       </div>
     </div>
 
-    <div class="notes-wall" id="notesWall"></div>
+    <div class="notes-wall" id="notesWall">
+      <div class="empty-note">loading notes...</div>
+    </div>
   </div>
 
   <footer class="site-footer">made with love (and a little help from AI) by Dada</footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <script>
-  // ---- Update this to wherever you'd like birthday notes emailed ----
-  const RECIPIENT_EMAIL = "ashleybreyanajohnson@gmail.com";
+  // ---- Paste your Firebase project's config here (see setup steps) ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyCW0q9o1NVTjjfCPqWmLxCJ1QMmtxOEX0M",
+    authDomain: "ash-birthday-f4131.firebaseapp.com",
+    projectId: "ash-birthday-f4131",
+    storageBucket: "ash-birthday-f4131.firebasestorage.app",
+    messagingSenderId: "889085929664",
+    appId: "1:889085929664:web:054783f67b8d1faacc6525"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  document.getElementById('sendNoteBtn').addEventListener('click', () => {
-    const name = document.getElementById('noteName').value.trim() || "A friend";
-    const message = document.getElementById('noteMessage').value.trim();
-    if(!message){
-      document.getElementById('noteMessage').focus();
-      return;
+  const sendBtn = document.getElementById('sendNoteBtn');
+  const nameInput = document.getElementById('noteName');
+  const messageInput = document.getElementById('noteMessage');
+
+  sendBtn.addEventListener('click', async () => {
+    const who = (nameInput.value.trim() || "A friend").slice(0, 40);
+    const what = messageInput.value.trim().slice(0, 400);
+    if(!what){ messageInput.focus(); return; }
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending...";
+    try {
+      await db.collection('notes').add({
+        who, what,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      nameInput.value = '';
+      messageInput.value = '';
+      sendBtn.textContent = "Sent! 🎉";
+    } catch (err) {
+      sendBtn.textContent = "Couldn't send — try again";
+    } finally {
+      setTimeout(() => { sendBtn.disabled = false; sendBtn.textContent = "Send love to Ash 💌"; }, 2200);
     }
-    const subject = encodeURIComponent(`Birthday note for Ash from ${name}`);
-    const body = encodeURIComponent(`${message}\n\n— ${name}`);
-    window.location.href = `mailto:${RECIPIENT_EMAIL}?subject=${subject}&body=${body}`;
   });
 
-  // ---- Add real notes here over time, then re-upload this file ----
-  // Example format:
-  // { who: "Dada", what: "So proud of you, kiddo." },
-  const notes = [
-    // { who: "Dada", what: "Happy birthday, Ash! Love you." },
-  ];
-
   const wall = document.getElementById('notesWall');
-  if(notes.length === 0){
-    wall.innerHTML = '<div class="empty-note">no notes yet — be the first to leave one above 🎈</div>';
-  } else {
-    notes.forEach(n => {
-      const div = document.createElement('div');
-      div.className = 'note';
-      div.innerHTML = `<div class="who">${n.who}</div><div class="what">${n.what}</div>`;
-      wall.appendChild(div);
+  db.collection('notes').orderBy('timestamp', 'desc').limit(100)
+    .onSnapshot(snapshot => {
+      wall.innerHTML = '';
+      if(snapshot.empty){
+        wall.innerHTML = '<div class="empty-note">no notes yet — be the first to leave one above 🎈</div>';
+        return;
+      }
+      snapshot.forEach(doc => {
+        const n = doc.data();
+        const div = document.createElement('div');
+        div.className = 'note';
+        const whoEl = document.createElement('div');
+        whoEl.className = 'who';
+        whoEl.textContent = n.who || 'Someone';
+        const whatEl = document.createElement('div');
+        whatEl.className = 'what';
+        whatEl.textContent = n.what || '';
+        div.appendChild(whoEl);
+        div.appendChild(whatEl);
+        wall.appendChild(div);
+      });
+    }, err => {
+      wall.innerHTML = '<div class="empty-note">notes aren\'t loading right now — check the Firebase setup</div>';
     });
-  }
 </script>
 
 </body>
